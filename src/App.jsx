@@ -13,6 +13,7 @@ import AssetDetails from './pages/AssetDetails';
 import CreateAsset from './pages/CreateAsset';
 import IssueList from './pages/IssueList';
 import IssueDetails from './pages/IssueDetails';
+import TechnicianList from './pages/TechnicianList';
 import NotFoundPage from './pages/NotFoundPage';
 
 export default function App() {
@@ -73,6 +74,14 @@ export default function App() {
               element={
                 <ProtectedRoute>
                   <IssueDetails />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/technicians"
+              element={
+                <ProtectedRoute>
+                  <TechnicianList />
                 </ProtectedRoute>
               }
             />

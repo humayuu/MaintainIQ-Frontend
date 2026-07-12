@@ -1,10 +1,12 @@
 import SpaceDashboardRoundedIcon from '@mui/icons-material/SpaceDashboardRounded';
 import Inventory2RoundedIcon from '@mui/icons-material/Inventory2Rounded';
 import ReportProblemRoundedIcon from '@mui/icons-material/ReportProblemRounded';
+import EngineeringRoundedIcon from '@mui/icons-material/EngineeringRounded';
 
 /**
  * Primary sidebar navigation. `match` decides the active item for a given
- * pathname (so /assets/123 still highlights "Assets").
+ * pathname (so /assets/123 still highlights "Assets"). Items flagged
+ * `adminOnly` are only rendered for users with the admin role (see Sidebar).
  */
 export const NAV_ITEMS = [
   {
@@ -24,6 +26,13 @@ export const NAV_ITEMS = [
     to: '/issues',
     icon: ReportProblemRoundedIcon,
     match: (p) => p.startsWith('/issues'),
+  },
+  {
+    label: 'Technicians',
+    to: '/technicians',
+    icon: EngineeringRoundedIcon,
+    match: (p) => p.startsWith('/technicians'),
+    adminOnly: true,
   },
 ];
 

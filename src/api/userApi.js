@@ -4,7 +4,8 @@ import axiosClient from './axiosClient';
 // GET /users?role=technician
 const userApi = {
   list: (params) => axiosClient.get('/users', { params }),
-  technicians: () => axiosClient.get('/users', { params: { role: 'technician' } }),
+  technicians: (params) =>
+    axiosClient.get('/users', { params: { role: 'technician', ...params } }),
 };
 
 export default userApi;

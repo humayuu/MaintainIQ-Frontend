@@ -25,6 +25,10 @@ export default function Sidebar({ onNavigate }) {
   const navigate = useNavigate();
   const { user } = useAuth();
 
+  const isAdmin = user?.role === 'admin';
+  // Hide admin-only items (e.g. Technicians) from non-admin users.
+  const navItems = NAV_ITEMS.filter((item) => !item.adminOnly || isAdmin);
+
   const go = (to) => {
     navigate(to);
     onNavigate?.();
@@ -57,7 +61,7 @@ export default function Sidebar({ onNavigate }) {
       </Typography>
 
       <List sx={{ px: 1.5, py: 1, flexGrow: 1 }}>
-        {NAV_ITEMS.map((item) => {
+        {navItems.map((item) => {
           const active = item.match(pathname);
           const Icon = item.icon;
           return (
