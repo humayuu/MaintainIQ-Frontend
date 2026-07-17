@@ -16,6 +16,7 @@ import LoginRoundedIcon from '@mui/icons-material/LoginRounded';
 import { useAuth } from '../context/AuthContext';
 import authApi from '../api/authApi';
 import AuthShell from '../components/AuthShell';
+import PasswordField from '../components/PasswordField';
 
 export default function Login() {
   const { login } = useAuth();
@@ -99,10 +100,9 @@ export default function Login() {
           autoComplete="email"
           autoFocus
         />
-        <TextField
+        <PasswordField
           label="Password"
           name="password"
-          type="password"
           value={form.password}
           onChange={handleChange}
           fullWidth

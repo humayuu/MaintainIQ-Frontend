@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { NotifyProvider } from './context/NotifyContext';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -14,7 +14,8 @@ import AssetDetails from './pages/AssetDetails';
 import CreateAsset from './pages/CreateAsset';
 import IssueList from './pages/IssueList';
 import IssueDetails from './pages/IssueDetails';
-import TechnicianList from './pages/TechnicianList';
+import UserList from './pages/UserList';
+import Profile from './pages/Profile';
 import NotFoundPage from './pages/NotFoundPage';
 
 export default function App() {
@@ -80,10 +81,20 @@ export default function App() {
               }
             />
             <Route
-              path="/technicians"
+              path="/users"
               element={
                 <ProtectedRoute>
-                  <TechnicianList />
+                  <UserList />
+                </ProtectedRoute>
+              }
+            />
+            {/* Legacy alias — old /technicians links redirect to /users. */}
+            <Route path="/technicians" element={<Navigate to="/users" replace />} />
+            <Route
+              path="/profile"
+              element={
+                <ProtectedRoute>
+                  <Profile />
                 </ProtectedRoute>
               }
             />

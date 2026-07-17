@@ -20,6 +20,7 @@ import { alpha } from '@mui/material/styles';
 import PersonAddAltRoundedIcon from '@mui/icons-material/PersonAddAltRounded';
 import authApi from '../api/authApi';
 import AuthShell from '../components/AuthShell';
+import PasswordField from '../components/PasswordField';
 
 const ROLES = ['admin', 'technician', 'supervisor'];
 
@@ -30,6 +31,7 @@ export default function Register() {
     name: '',
     email: '',
     password: '',
+    confirmPassword: '',
     role: 'technician',
   });
   const [error, setError] = useState('');
@@ -40,19 +42,35 @@ export default function Register() {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
+  // Passwords must match before we let the form submit. Only surface the
+  // mismatch once the user has actually typed something in the confirm field.
+  const passwordsMatch = form.password === form.confirmPassword;
+  const showMismatch = form.confirmPassword !== '' && !passwordsMatch;
+
   // Keep the button disabled until the user has started filling the form
-  // (name, email and password all non-empty; role has a default).
+  // (name, email and password all non-empty; role has a default) and the two
+  // password fields agree.
   const canSubmit =
     form.name.trim() !== '' &&
     form.email.trim() !== '' &&
-    form.password.trim() !== '';
+    form.password.trim() !== '' &&
+    form.confirmPassword.trim() !== '' &&
+    passwordsMatch;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+
+    if (!passwordsMatch) {
+      setError('Passwords do not match.');
+      return;
+    }
+
     setLoading(true);
     try {
-      await authApi.register(form);
+      // confirmPassword is a client-side check only — never sent to the API.
+      const { confirmPassword, ...payload } = form;
+      await authApi.register(payload);
       setSuccess(true);
     } catch (err) {
       const message =
@@ -124,15 +142,25 @@ export default function Register() {
             required
             autoComplete="email"
           />
-          <TextField
+          <PasswordField
             label="Password"
             name="password"
-            type="password"
             value={form.password}
             onChange={handleChange}
             fullWidth
             required
             autoComplete="new-password"
+          />
+          <PasswordField
+            label="Confirm password"
+            name="confirmPassword"
+            value={form.confirmPassword}
+            onChange={handleChange}
+            fullWidth
+            required
+            autoComplete="new-password"
+            error={showMismatch}
+            helperText={showMismatch ? 'Passwords do not match.' : ' '}
           />
           <FormControl fullWidth required size="small">
             <InputLabel id="role-label">Role</InputLabel>

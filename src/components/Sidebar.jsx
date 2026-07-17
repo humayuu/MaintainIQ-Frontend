@@ -7,6 +7,8 @@ import {
   ListItemIcon,
   ListItemText,
   Typography,
+  Avatar,
+  Chip,
 } from '@mui/material';
 import Brand from './Brand';
 import { NAV_ITEMS } from './navConfig';
@@ -24,13 +26,16 @@ export default function Sidebar({ onNavigate }) {
   const { user } = useAuth();
 
   const isAdmin = user?.role === 'admin';
-  // Hide admin-only items (e.g. Technicians) from non-admin users.
+  // Hide admin-only items (e.g. Users) from non-admin users.
   const navItems = NAV_ITEMS.filter((item) => !item.adminOnly || isAdmin);
 
   const go = (to) => {
     navigate(to);
     onNavigate?.();
   };
+
+  const displayName = user?.name || user?.email || 'User';
+  const profileActive = pathname.startsWith('/profile');
 
   return (
     <Box
@@ -77,6 +82,38 @@ export default function Sidebar({ onNavigate }) {
           );
         })}
       </List>
+
+      {/* Account footer — opens the user's own profile page. */}
+      <Box sx={{ p: 1.5, borderTop: '1px solid', borderColor: 'divider' }}>
+        <ListItemButton
+          selected={profileActive}
+          onClick={() => go('/profile')}
+          sx={{ borderRadius: 2, py: 1 }}
+        >
+          <Avatar
+            src={user?.avatarUrl || undefined}
+            sx={{ width: 34, height: 34, mr: 1.25, bgcolor: 'primary.main', fontSize: '0.9rem' }}
+          >
+            {displayName.charAt(0).toUpperCase()}
+          </Avatar>
+          <Box sx={{ minWidth: 0, flexGrow: 1 }}>
+            <Typography variant="body2" noWrap sx={{ fontWeight: 700, lineHeight: 1.2 }}>
+              {displayName}
+            </Typography>
+            <Typography variant="caption" color="text.secondary">
+              View profile
+            </Typography>
+          </Box>
+          {user?.role && (
+            <Chip
+              label={user.role}
+              size="small"
+              variant="outlined"
+              sx={{ textTransform: 'capitalize', height: 20, fontSize: '0.65rem' }}
+            />
+          )}
+        </ListItemButton>
+      </Box>
     </Box>
   );
 }

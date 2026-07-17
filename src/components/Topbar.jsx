@@ -39,6 +39,11 @@ export default function Topbar({ onMenuClick }) {
     navigate('/login', { replace: true });
   };
 
+  const handleProfile = () => {
+    setAnchor(null);
+    navigate('/profile');
+  };
+
   return (
     <AppBar
       position="sticky"
@@ -80,7 +85,10 @@ export default function Topbar({ onMenuClick }) {
 
         <Tooltip title="Account">
           <IconButton onClick={(e) => setAnchor(e.currentTarget)} size="small" sx={{ p: 0.25 }}>
-            <Avatar sx={{ bgcolor: 'primary.main', width: 36, height: 36, fontSize: '0.95rem' }}>
+            <Avatar
+              src={user?.avatarUrl || undefined}
+              sx={{ bgcolor: 'primary.main', width: 36, height: 36, fontSize: '0.95rem' }}
+            >
               {initial}
             </Avatar>
           </IconButton>
@@ -105,13 +113,11 @@ export default function Topbar({ onMenuClick }) {
             )}
           </Box>
           <Divider />
-          <MenuItem disabled sx={{ opacity: '1 !important' }}>
+          <MenuItem onClick={handleProfile}>
             <ListItemIcon>
               <PersonRoundedIcon fontSize="small" />
             </ListItemIcon>
-            <Typography variant="body2" sx={{ textTransform: 'capitalize' }}>
-              {user?.role || 'Member'}
-            </Typography>
+            <Typography variant="body2">My profile</Typography>
           </MenuItem>
           <MenuItem onClick={handleLogout}>
             <ListItemIcon>

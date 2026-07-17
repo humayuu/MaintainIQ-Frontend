@@ -27,6 +27,14 @@ export function AuthProvider({ children }) {
     setUser(newUser ?? null);
   }, []);
 
+  // Replace the cached user after a profile edit (no token change). Keeps the
+  // Topbar/avatar in sync without a full re-login.
+  const updateUser = useCallback((nextUser) => {
+    if (!nextUser) return;
+    localStorage.setItem('user', JSON.stringify(nextUser));
+    setUser(nextUser);
+  }, []);
+
   // On mount: if we have a token, validate it by fetching the current user.
   useEffect(() => {
     let active = true;
@@ -84,6 +92,7 @@ export function AuthProvider({ children }) {
     loading,
     login,
     logout,
+    updateUser,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

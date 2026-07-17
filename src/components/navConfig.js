@@ -1,7 +1,7 @@
 import SpaceDashboardRoundedIcon from '@mui/icons-material/SpaceDashboardRounded';
 import Inventory2RoundedIcon from '@mui/icons-material/Inventory2Rounded';
 import ReportProblemRoundedIcon from '@mui/icons-material/ReportProblemRounded';
-import EngineeringRoundedIcon from '@mui/icons-material/EngineeringRounded';
+import GroupRoundedIcon from '@mui/icons-material/GroupRounded';
 
 /**
  * Primary sidebar navigation. `match` decides the active item for a given
@@ -28,10 +28,10 @@ export const NAV_ITEMS = [
     match: (p) => p.startsWith('/issues'),
   },
   {
-    label: 'Technicians',
-    to: '/technicians',
-    icon: EngineeringRoundedIcon,
-    match: (p) => p.startsWith('/technicians'),
+    label: 'Users',
+    to: '/users',
+    icon: GroupRoundedIcon,
+    match: (p) => p.startsWith('/users') || p.startsWith('/technicians'),
     adminOnly: true,
   },
 ];

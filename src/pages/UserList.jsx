@@ -8,34 +8,40 @@ import {
   TextField,
   InputAdornment,
   Alert,
+  ToggleButton,
+  ToggleButtonGroup,
 } from '@mui/material';
 import { DataGrid } from '@mui/x-data-grid';
 import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
-import EngineeringRoundedIcon from '@mui/icons-material/EngineeringRounded';
+import GroupRoundedIcon from '@mui/icons-material/GroupRounded';
 import userApi from '../api/userApi';
 import { useAuth } from '../context/AuthContext';
 import PageHeader from '../components/PageHeader';
 import EmptyState from '../components/EmptyState';
 import { formatDate, dateFromObjectId } from '../utils/format';
 
+// Per-role chip colour so admins and technicians are easy to tell apart.
+const ROLE_COLOR = { admin: 'primary', supervisor: 'warning', technician: 'secondary' };
+
 // Custom DataGrid empty-state overlay so zero-results looks intentional.
 function NoRowsOverlay() {
   return (
     <EmptyState
       dense
-      icon={EngineeringRoundedIcon}
-      title="No technicians found"
-      description="No technician accounts match your search. New technicians appear here once they register."
+      icon={GroupRoundedIcon}
+      title="No users found"
+      description="No accounts match your filters. New users appear here once they register."
     />
   );
 }
 
 /**
- * Admin-only roster of every technician. The backend restricts GET /users to
- * admins; we also guard the route here so non-admins are bounced even if they
- * reach the URL directly.
+ * Admin-only roster of every user (admins + technicians). The backend restricts
+ * GET /users to admins; we also guard the route here so non-admins are bounced
+ * even if they reach the URL directly. Supports role filtering, text search and
+ * column sorting.
  */
-export default function TechnicianList() {
+export default function UserList() {
   const { user } = useAuth();
   const isAdmin = user?.role === 'admin';
 
@@ -43,31 +49,32 @@ export default function TechnicianList() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [search, setSearch] = useState('');
+  const [roleFilter, setRoleFilter] = useState('all'); // 'all' | 'admin' | 'technician'
 
   useEffect(() => {
     if (!isAdmin) return;
     let active = true;
 
-    async function fetchTechnicians() {
+    async function fetchUsers() {
       setLoading(true);
       setError('');
       try {
-        // High limit so the full roster comes back in one page.
-        const { data } = await userApi.technicians({ limit: 100 });
+        // No role filter → the full roster; high limit so it comes in one page.
+        const { data } = await userApi.list({ limit: 100 });
         if (!active) return;
         // Backend envelope: { success, data: { users } }.
         const list = data?.data?.users ?? [];
         setRows(list.map((u) => ({ id: u.id ?? u._id, ...u })));
       } catch (err) {
         if (!active) return;
-        setError(err.response?.data?.message || 'Failed to load technicians.');
+        setError(err.response?.data?.message || 'Failed to load users.');
         setRows([]);
       } finally {
         if (active) setLoading(false);
       }
     }
 
-    fetchTechnicians();
+    fetchUsers();
     return () => {
       active = false;
     };
@@ -81,10 +88,11 @@ export default function TechnicianList() {
         flex: 1,
         minWidth: 200,
         renderCell: (params) => {
-          const name = params.value || params.row.email || 'Technician';
+          const name = params.value || params.row.email || 'User';
+          const color = ROLE_COLOR[params.row.role] || 'primary';
           return (
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25, height: '100%' }}>
-              <Avatar sx={{ bgcolor: 'primary.main', width: 32, height: 32, fontSize: '0.85rem' }}>
+              <Avatar sx={{ bgcolor: `${color}.main`, width: 32, height: 32, fontSize: '0.85rem' }}>
                 {name.charAt(0).toUpperCase()}
               </Avatar>
               <Box component="span" sx={{ fontWeight: 600 }}>
@@ -99,12 +107,11 @@ export default function TechnicianList() {
         field: 'role',
         headerName: 'Role',
         width: 150,
-        sortable: false,
         renderCell: (params) => (
           <Chip
             label={params.value || 'technician'}
             size="small"
-            color="secondary"
+            color={ROLE_COLOR[params.value] || 'default'}
             variant="outlined"
             sx={{ textTransform: 'capitalize' }}
           />
@@ -129,16 +136,18 @@ export default function TechnicianList() {
     [],
   );
 
-  // Client-side search across name and email.
+  // Role filter + client-side search across name and email.
   const filteredRows = useMemo(() => {
     const q = search.trim().toLowerCase();
-    if (!q) return rows;
-    return rows.filter(
-      (r) =>
+    return rows.filter((r) => {
+      if (roleFilter !== 'all' && r.role !== roleFilter) return false;
+      if (!q) return true;
+      return (
         (r.name || '').toLowerCase().includes(q) ||
-        (r.email || '').toLowerCase().includes(q),
-    );
-  }, [rows, search]);
+        (r.email || '').toLowerCase().includes(q)
+      );
+    });
+  }, [rows, search, roleFilter]);
 
   // Belt-and-suspenders: non-admins never see this screen (also hidden in the
   // sidebar), so bounce them to the dashboard.
@@ -149,21 +158,29 @@ export default function TechnicianList() {
   return (
     <Box sx={{ maxWidth: 1280, mx: 'auto' }}>
       <PageHeader
-        title="Technicians"
+        title="Users"
         subtitle={
           loading
-            ? 'Loading technician roster…'
-            : `${rows.length} technician${rows.length === 1 ? '' : 's'} registered.`
+            ? 'Loading users…'
+            : `${rows.length} user${rows.length === 1 ? '' : 's'} registered.`
         }
       />
 
-      <Box sx={{ mb: 2.5, maxWidth: 420 }}>
+      <Box
+        sx={{
+          mb: 2.5,
+          display: 'flex',
+          flexWrap: 'wrap',
+          gap: 1.5,
+          alignItems: 'center',
+        }}
+      >
         <TextField
-          label="Search technicians"
+          label="Search users"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           size="small"
-          fullWidth
+          sx={{ maxWidth: 420, flexGrow: 1 }}
           slotProps={{
             input: {
               startAdornment: (
@@ -174,6 +191,18 @@ export default function TechnicianList() {
             },
           }}
         />
+        <ToggleButtonGroup
+          value={roleFilter}
+          exclusive
+          size="small"
+          onChange={(_, v) => v && setRoleFilter(v)}
+          aria-label="Filter by role"
+        >
+          <ToggleButton value="all">All</ToggleButton>
+          <ToggleButton value="admin">Admins</ToggleButton>
+          <ToggleButton value="supervisor">Supervisors</ToggleButton>
+          <ToggleButton value="technician">Technicians</ToggleButton>
+        </ToggleButtonGroup>
       </Box>
 
       {error && (
@@ -187,7 +216,10 @@ export default function TechnicianList() {
           rows={filteredRows}
           columns={columns}
           loading={loading}
-          initialState={{ pagination: { paginationModel: { page: 0, pageSize: 10 } } }}
+          initialState={{
+            pagination: { paginationModel: { page: 0, pageSize: 10 } },
+            sorting: { sortModel: [{ field: 'name', sort: 'asc' }] },
+          }}
           pageSizeOptions={[10, 25, 50]}
           disableRowSelectionOnClick
           slots={{ noRowsOverlay: NoRowsOverlay }}
