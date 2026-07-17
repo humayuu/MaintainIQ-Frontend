@@ -16,7 +16,7 @@ import userApi from '../api/userApi';
 import { useAuth } from '../context/AuthContext';
 import PageHeader from '../components/PageHeader';
 import EmptyState from '../components/EmptyState';
-import { formatDate } from '../utils/format';
+import { formatDate, dateFromObjectId } from '../utils/format';
 
 // Custom DataGrid empty-state overlay so zero-results looks intentional.
 function NoRowsOverlay() {
@@ -114,7 +114,16 @@ export default function TechnicianList() {
         field: 'createdAt',
         headerName: 'Joined',
         width: 140,
-        valueGetter: (value) => formatDate(value),
+        // Prefer an explicit join date; if the API doesn't send one, fall back
+        // to the timestamp encoded in the Mongo _id.
+        valueGetter: (value, row) => {
+          const raw =
+            value ??
+            row.joinedAt ??
+            row.dateJoined ??
+            dateFromObjectId(row._id ?? row.id);
+          return formatDate(raw);
+        },
       },
     ],
     [],

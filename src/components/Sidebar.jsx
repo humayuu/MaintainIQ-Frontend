@@ -7,8 +7,6 @@ import {
   ListItemIcon,
   ListItemText,
   Typography,
-  Chip,
-  Avatar,
 } from '@mui/material';
 import Brand from './Brand';
 import { NAV_ITEMS } from './navConfig';
@@ -33,9 +31,6 @@ export default function Sidebar({ onNavigate }) {
     navigate(to);
     onNavigate?.();
   };
-
-  const displayName = user?.name || user?.email || 'User';
-  const initial = displayName.charAt(0).toUpperCase();
 
   return (
     <Box
@@ -82,40 +77,6 @@ export default function Sidebar({ onNavigate }) {
           );
         })}
       </List>
-
-      {/* User card */}
-      <Box sx={{ p: 1.5 }}>
-        <Box
-          sx={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 1.25,
-            p: 1.25,
-            borderRadius: 2,
-            bgcolor: 'background.default',
-            border: '1px solid',
-            borderColor: 'divider',
-          }}
-        >
-          <Avatar sx={{ bgcolor: 'primary.main', width: 36, height: 36, fontSize: '0.95rem' }}>
-            {initial}
-          </Avatar>
-          <Box sx={{ minWidth: 0, flexGrow: 1 }}>
-            <Typography variant="body2" noWrap sx={{ fontWeight: 700 }}>
-              {displayName}
-            </Typography>
-            {user?.role && (
-              <Chip
-                label={user.role}
-                size="small"
-                color="secondary"
-                variant="outlined"
-                sx={{ height: 18, fontSize: '0.65rem', textTransform: 'capitalize', mt: 0.25 }}
-              />
-            )}
-          </Box>
-        </Box>
-      </Box>
     </Box>
   );
 }

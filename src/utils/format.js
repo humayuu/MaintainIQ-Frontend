@@ -13,6 +13,14 @@ export function formatDate(value) {
   });
 }
 
+// A MongoDB ObjectId encodes its creation time in its first 4 bytes. When the
+// API doesn't return an explicit `createdAt`, we can still recover the record's
+// creation date from its _id. Returns a Date, or null if `id` isn't an ObjectId.
+export function dateFromObjectId(id) {
+  if (typeof id !== 'string' || !/^[0-9a-fA-F]{24}$/.test(id)) return null;
+  return new Date(parseInt(id.slice(0, 8), 16) * 1000);
+}
+
 // Like formatDate but includes the time — for activity/history timestamps.
 export function formatDateTime(value) {
   if (!value) return '—';

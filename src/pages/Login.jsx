@@ -2,8 +2,6 @@ import { useState } from 'react';
 import { Link as RouterLink, useNavigate, useLocation } from 'react-router-dom';
 import {
   Box,
-  Card,
-  CardContent,
   Stack,
   Avatar,
   Typography,
@@ -17,6 +15,7 @@ import { alpha } from '@mui/material/styles';
 import LoginRoundedIcon from '@mui/icons-material/LoginRounded';
 import { useAuth } from '../context/AuthContext';
 import authApi from '../api/authApi';
+import AuthShell from '../components/AuthShell';
 
 export default function Login() {
   const { login } = useAuth();
@@ -31,6 +30,10 @@ export default function Login() {
   const handleChange = (e) => {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
+
+  // Keep the button disabled until the user has actually started filling
+  // the form (both fields non-empty).
+  const canSubmit = form.email.trim() !== '' && form.password.trim() !== '';
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -58,86 +61,74 @@ export default function Login() {
   };
 
   return (
-    <Box
-      sx={{
-        minHeight: 'calc(100vh - 160px)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        py: { xs: 4, sm: 6 },
-      }}
-    >
-      <Card sx={{ width: '100%', maxWidth: 440, boxShadow: 4 }}>
-        <CardContent sx={{ p: { xs: 3, sm: 4 } }}>
-          <Stack spacing={1.25} sx={{ mb: 3 }}>
-            <Avatar
-              variant="rounded"
-              sx={{
-                bgcolor: (t) => alpha(t.palette.primary.main, 0.12),
-                color: 'primary.main',
-                width: 44,
-                height: 44,
-              }}
-            >
-              <LoginRoundedIcon fontSize="small" />
-            </Avatar>
-            <Typography variant="h4">Welcome back</Typography>
-            <Typography variant="body2" color="text.secondary">
-              Sign in to your MaintainIQ account to continue.
-            </Typography>
-          </Stack>
+    <AuthShell>
+      <Stack spacing={1.25} sx={{ mb: 3 }}>
+        <Avatar
+          variant="rounded"
+          sx={{
+            bgcolor: (t) => alpha(t.palette.primary.main, 0.12),
+            color: 'primary.main',
+            width: 44,
+            height: 44,
+          }}
+        >
+          <LoginRoundedIcon fontSize="small" />
+        </Avatar>
+        <Typography variant="h4">Welcome back</Typography>
+        <Typography variant="body2" color="text.secondary">
+          Sign in to your MaintainIQ account to continue.
+        </Typography>
+      </Stack>
 
-          {error && (
-            <Alert severity="error" sx={{ mb: 2 }}>
-              {error}
-            </Alert>
-          )}
+      {error && (
+        <Alert severity="error" sx={{ mb: 2 }}>
+          {error}
+        </Alert>
+      )}
 
-          <Box component="form" onSubmit={handleSubmit} noValidate>
-            <TextField
-              label="Email"
-              name="email"
-              type="email"
-              value={form.email}
-              onChange={handleChange}
-              fullWidth
-              required
-              margin="normal"
-              autoComplete="email"
-              autoFocus
-            />
-            <TextField
-              label="Password"
-              name="password"
-              type="password"
-              value={form.password}
-              onChange={handleChange}
-              fullWidth
-              required
-              margin="normal"
-              autoComplete="current-password"
-            />
-            <Button
-              type="submit"
-              variant="contained"
-              fullWidth
-              size="large"
-              disabled={loading}
-              sx={{ mt: 3 }}
-              startIcon={loading ? <CircularProgress size={20} color="inherit" /> : null}
-            >
-              {loading ? 'Signing in…' : 'Sign in'}
-            </Button>
-          </Box>
+      <Box component="form" onSubmit={handleSubmit} noValidate>
+        <TextField
+          label="Email"
+          name="email"
+          type="email"
+          value={form.email}
+          onChange={handleChange}
+          fullWidth
+          required
+          margin="normal"
+          autoComplete="email"
+          autoFocus
+        />
+        <TextField
+          label="Password"
+          name="password"
+          type="password"
+          value={form.password}
+          onChange={handleChange}
+          fullWidth
+          required
+          margin="normal"
+          autoComplete="current-password"
+        />
+        <Button
+          type="submit"
+          variant="contained"
+          fullWidth
+          size="large"
+          disabled={loading || !canSubmit}
+          sx={{ mt: 3 }}
+          startIcon={loading ? <CircularProgress size={20} color="inherit" /> : null}
+        >
+          {loading ? 'Signing in…' : 'Sign in'}
+        </Button>
+      </Box>
 
-          <Typography variant="body2" color="text.secondary" sx={{ mt: 3, textAlign: 'center' }}>
-            Don&apos;t have an account?{' '}
-            <Link component={RouterLink} to="/register">
-              Create one
-            </Link>
-          </Typography>
-        </CardContent>
-      </Card>
-    </Box>
+      <Typography variant="body2" color="text.secondary" sx={{ mt: 3, textAlign: 'center' }}>
+        Don&apos;t have an account?{' '}
+        <Link component={RouterLink} to="/register">
+          Create one
+        </Link>
+      </Typography>
+    </AuthShell>
   );
 }

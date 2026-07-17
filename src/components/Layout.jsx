@@ -7,6 +7,7 @@ import Brand from './Brand';
 
 // Routes that render WITHOUT the authenticated dashboard shell.
 const isAuthRoute = (p) => p === '/login' || p === '/register';
+const isLanding = (p) => p === '/';
 const isPublicAsset = (p) => p.startsWith('/asset/');
 
 /**
@@ -89,8 +90,21 @@ function DashboardShell() {
   );
 }
 
+/**
+ * Full-bleed layout for the auth pages (login/register): the page itself owns
+ * the whole viewport via AuthShell, so no surrounding chrome is needed.
+ */
+function FullBleedLayout() {
+  return (
+    <Box component="main" sx={{ minHeight: '100vh' }}>
+      <Outlet />
+    </Box>
+  );
+}
+
 export default function Layout() {
   const { pathname } = useLocation();
-  const bare = isAuthRoute(pathname) || isPublicAsset(pathname);
-  return bare ? <BareLayout /> : <DashboardShell />;
+  if (isAuthRoute(pathname) || isLanding(pathname)) return <FullBleedLayout />;
+  if (isPublicAsset(pathname)) return <BareLayout />;
+  return <DashboardShell />;
 }

@@ -1,9 +1,10 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { NotifyProvider } from './context/NotifyContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import Layout from './components/Layout';
 
+import Landing from './pages/Landing';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import PublicAssetPage from './pages/PublicAssetPage';
@@ -24,6 +25,7 @@ export default function App() {
           <Routes>
           <Route element={<Layout />}>
             {/* Public routes */}
+            <Route path="/" element={<Landing />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/asset/:slug" element={<PublicAssetPage />} />
@@ -86,8 +88,7 @@ export default function App() {
               }
             />
 
-            {/* Default + fallback */}
-            <Route path="/" element={<Navigate to="/dashboard" replace />} />
+            {/* Fallback */}
             <Route path="*" element={<NotFoundPage />} />
           </Route>
         </Routes>
