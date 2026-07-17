@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import { Box, Drawer } from '@mui/material';
-import Sidebar, { SIDEBAR_WIDTH } from './Sidebar';
+import Sidebar, { SIDEBAR_WIDTH, SIDEBAR_COLLAPSED_WIDTH } from './Sidebar';
 import Topbar from './Topbar';
 import Brand from './Brand';
 
@@ -41,15 +41,34 @@ function BareLayout() {
  */
 function DashboardShell() {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [collapsed, setCollapsed] = useState(() => {
+    try {
+      return localStorage.getItem('sidebarCollapsed') === '1';
+    } catch {
+      return false;
+    }
+  });
+
+  const toggleCollapse = () =>
+    setCollapsed((prev) => {
+      try {
+        localStorage.setItem('sidebarCollapsed', prev ? '0' : '1');
+      } catch {
+        /* ignore persistence failures */
+      }
+      return !prev;
+    });
+
+  const desktopWidth = collapsed ? SIDEBAR_COLLAPSED_WIDTH : SIDEBAR_WIDTH;
 
   return (
     <Box sx={{ display: 'flex', minHeight: '100vh', bgcolor: 'background.default' }}>
       <Box
         component="nav"
         aria-label="Main navigation"
-        sx={{ width: { md: SIDEBAR_WIDTH }, flexShrink: { md: 0 } }}
+        sx={{ width: { md: desktopWidth }, flexShrink: { md: 0 } }}
       >
-        {/* Mobile: temporary drawer */}
+        {/* Mobile: temporary drawer (always full width, never collapsed) */}
         <Drawer
           variant="temporary"
           open={mobileOpen}
@@ -63,25 +82,35 @@ function DashboardShell() {
           <Sidebar onNavigate={() => setMobileOpen(false)} />
         </Drawer>
 
-        {/* Desktop: fixed permanent drawer */}
+        {/* Desktop: fixed permanent drawer, width follows the collapsed state */}
         <Drawer
           variant="permanent"
           open
           sx={{
             display: { xs: 'none', md: 'block' },
             '& .MuiDrawer-paper': {
-              width: SIDEBAR_WIDTH,
+              width: desktopWidth,
               boxSizing: 'border-box',
               border: 0,
+              overflowX: 'hidden',
+              transition: (t) =>
+                t.transitions.create('width', {
+                  easing: t.transitions.easing.sharp,
+                  duration: t.transitions.duration.enteringScreen,
+                }),
             },
           }}
         >
-          <Sidebar />
+          <Sidebar collapsed={collapsed} />
         </Drawer>
       </Box>
 
       <Box sx={{ flexGrow: 1, minWidth: 0, display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
-        <Topbar onMenuClick={() => setMobileOpen(true)} />
+        <Topbar
+          onMenuClick={() => setMobileOpen(true)}
+          onToggleCollapse={toggleCollapse}
+          collapsed={collapsed}
+        />
         <Box component="main" sx={{ flexGrow: 1, p: { xs: 2, sm: 2.5, md: 3.5 } }}>
           <Outlet />
         </Box>

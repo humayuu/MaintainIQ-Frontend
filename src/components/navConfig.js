@@ -1,6 +1,7 @@
 import SpaceDashboardRoundedIcon from '@mui/icons-material/SpaceDashboardRounded';
 import Inventory2RoundedIcon from '@mui/icons-material/Inventory2Rounded';
 import ReportProblemRoundedIcon from '@mui/icons-material/ReportProblemRounded';
+import CalendarMonthRoundedIcon from '@mui/icons-material/CalendarMonthRounded';
 import GroupRoundedIcon from '@mui/icons-material/GroupRounded';
 
 /**
@@ -26,6 +27,12 @@ export const NAV_ITEMS = [
     to: '/issues',
     icon: ReportProblemRoundedIcon,
     match: (p) => p.startsWith('/issues'),
+  },
+  {
+    label: 'Schedule',
+    to: '/schedule',
+    icon: CalendarMonthRoundedIcon,
+    match: (p) => p.startsWith('/schedule'),
   },
   {
     label: 'Users',

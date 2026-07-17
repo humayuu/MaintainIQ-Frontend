@@ -1,47 +1,29 @@
-import { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import {
-  AppBar,
-  Toolbar,
-  Box,
-  IconButton,
-  Typography,
-  Avatar,
-  Menu,
-  MenuItem,
-  ListItemIcon,
-  Divider,
-  Chip,
-  Tooltip,
-} from '@mui/material';
+import { AppBar, Toolbar, IconButton, Typography, Button, Tooltip } from '@mui/material';
 import MenuRoundedIcon from '@mui/icons-material/MenuRounded';
+import MenuOpenRoundedIcon from '@mui/icons-material/MenuOpenRounded';
 import LogoutRoundedIcon from '@mui/icons-material/LogoutRounded';
-import PersonRoundedIcon from '@mui/icons-material/PersonRounded';
+import DarkModeRoundedIcon from '@mui/icons-material/DarkModeRounded';
+import LightModeRoundedIcon from '@mui/icons-material/LightModeRounded';
 import { useAuth } from '../context/AuthContext';
+import { useColorMode } from '../theme/ColorModeProvider';
 import { activeNavLabel } from './navConfig';
 
 /**
- * Sticky top bar for the authenticated shell: mobile menu toggle, the current
- * section label, and the account menu.
+ * Sticky top bar for the authenticated shell: sidebar toggles (collapse on
+ * desktop, drawer on mobile), the current section label, a theme switch, and a
+ * logout action. Profile details live in the sidebar.
  */
-export default function Topbar({ onMenuClick }) {
+export default function Topbar({ onMenuClick, onToggleCollapse, collapsed }) {
   const { pathname } = useLocation();
   const navigate = useNavigate();
-  const { user, logout } = useAuth();
-  const [anchor, setAnchor] = useState(null);
-
-  const displayName = user?.name || user?.email || 'User';
-  const initial = displayName.charAt(0).toUpperCase();
+  const { logout } = useAuth();
+  const { mode, toggleColorMode } = useColorMode();
+  const isDark = mode === 'dark';
 
   const handleLogout = () => {
-    setAnchor(null);
     logout();
     navigate('/login', { replace: true });
-  };
-
-  const handleProfile = () => {
-    setAnchor(null);
-    navigate('/profile');
   };
 
   return (
@@ -49,13 +31,15 @@ export default function Topbar({ onMenuClick }) {
       position="sticky"
       sx={{
         top: 0,
-        bgcolor: 'rgba(255,255,255,0.85)',
+        bgcolor: (t) =>
+          t.palette.mode === 'dark' ? 'rgba(17,27,46,0.85)' : 'rgba(255,255,255,0.85)',
         backdropFilter: 'blur(8px)',
         borderBottom: '1px solid',
         borderColor: 'divider',
       }}
     >
-      <Toolbar sx={{ gap: 1 }}>
+      <Toolbar sx={{ gap: 0.5 }}>
+        {/* Mobile: open the drawer */}
         <IconButton
           edge="start"
           onClick={onMenuClick}
@@ -65,67 +49,47 @@ export default function Topbar({ onMenuClick }) {
           <MenuRoundedIcon />
         </IconButton>
 
-        <Typography variant="h6" sx={{ flexGrow: 1, fontWeight: 700 }}>
-          {activeNavLabel(pathname)}
-        </Typography>
-
-        <Box sx={{ display: { xs: 'none', sm: 'flex' }, alignItems: 'center', gap: 1, mr: 0.5 }}>
-          <Typography variant="body2" sx={{ fontWeight: 600 }}>
-            {displayName}
-          </Typography>
-          {user?.role && (
-            <Chip
-              label={user.role}
-              size="small"
-              color="secondary"
-              sx={{ textTransform: 'capitalize', height: 22 }}
-            />
-          )}
-        </Box>
-
-        <Tooltip title="Account">
-          <IconButton onClick={(e) => setAnchor(e.currentTarget)} size="small" sx={{ p: 0.25 }}>
-            <Avatar
-              src={user?.avatarUrl || undefined}
-              sx={{ bgcolor: 'primary.main', width: 36, height: 36, fontSize: '0.95rem' }}
-            >
-              {initial}
-            </Avatar>
+        {/* Desktop: collapse / expand the sidebar */}
+        <Tooltip title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}>
+          <IconButton
+            edge="start"
+            onClick={onToggleCollapse}
+            sx={{ display: { xs: 'none', md: 'inline-flex' } }}
+            aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          >
+            {collapsed ? <MenuRoundedIcon /> : <MenuOpenRoundedIcon />}
           </IconButton>
         </Tooltip>
 
-        <Menu
-          anchorEl={anchor}
-          open={Boolean(anchor)}
-          onClose={() => setAnchor(null)}
-          transformOrigin={{ horizontal: 'right', vertical: 'top' }}
-          anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
-          slotProps={{ paper: { sx: { mt: 1, minWidth: 220, borderRadius: 2 } } }}
+        <Typography variant="h6" sx={{ flexGrow: 1, fontWeight: 700, ml: 0.5 }}>
+          {activeNavLabel(pathname)}
+        </Typography>
+
+        {/* Theme switch */}
+        <Tooltip title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}>
+          <IconButton onClick={toggleColorMode} aria-label="Toggle theme" sx={{ color: 'text.secondary' }}>
+            {isDark ? <LightModeRoundedIcon /> : <DarkModeRoundedIcon />}
+          </IconButton>
+        </Tooltip>
+
+        {/* Logout — labelled on desktop, icon-only on mobile */}
+        <Button
+          onClick={handleLogout}
+          color="inherit"
+          startIcon={<LogoutRoundedIcon />}
+          sx={{ display: { xs: 'none', sm: 'inline-flex' }, fontWeight: 600, color: 'text.secondary' }}
         >
-          <Box sx={{ px: 2, py: 1.5 }}>
-            <Typography variant="subtitle2" noWrap>
-              {displayName}
-            </Typography>
-            {user?.email && (
-              <Typography variant="caption" color="text.secondary" noWrap>
-                {user.email}
-              </Typography>
-            )}
-          </Box>
-          <Divider />
-          <MenuItem onClick={handleProfile}>
-            <ListItemIcon>
-              <PersonRoundedIcon fontSize="small" />
-            </ListItemIcon>
-            <Typography variant="body2">My profile</Typography>
-          </MenuItem>
-          <MenuItem onClick={handleLogout}>
-            <ListItemIcon>
-              <LogoutRoundedIcon fontSize="small" />
-            </ListItemIcon>
-            <Typography variant="body2">Log out</Typography>
-          </MenuItem>
-        </Menu>
+          Log out
+        </Button>
+        <Tooltip title="Log out">
+          <IconButton
+            onClick={handleLogout}
+            aria-label="Log out"
+            sx={{ display: { xs: 'inline-flex', sm: 'none' }, color: 'text.secondary' }}
+          >
+            <LogoutRoundedIcon />
+          </IconButton>
+        </Tooltip>
       </Toolbar>
     </AppBar>
   );

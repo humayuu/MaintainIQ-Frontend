@@ -7,6 +7,7 @@ const assetApi = {
   create: (data) => axiosClient.post('/assets', data),
   list: (params) => axiosClient.get('/assets', { params }),
   stats: () => axiosClient.get('/assets/stats'),
+  schedule: (params) => axiosClient.get('/assets/schedule', { params }),
   getById: (id) => axiosClient.get(`/assets/${id}`),
   update: (id, data) => axiosClient.put(`/assets/${id}`, data),
   getQr: (id, config) => axiosClient.get(`/assets/${id}/qr`, config),
