@@ -6,7 +6,7 @@ import Topbar from './Topbar';
 import Brand from './Brand';
 
 // Routes that render WITHOUT the authenticated dashboard shell.
-const isAuthRoute = (p) => p === '/login' || p === '/register';
+const isAuthRoute = (p) => p === '/login' || p === '/register' || p === '/verify-email';
 const isLanding = (p) => p === '/';
 const isPublicAsset = (p) => p.startsWith('/asset/');
 

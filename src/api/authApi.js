@@ -6,6 +6,8 @@ import axiosClient from './axiosClient';
 const authApi = {
   register: (data) => axiosClient.post('/auth/register', data),
   login: (credentials) => axiosClient.post('/auth/login', credentials),
+  verifyEmail: (data) => axiosClient.post('/auth/verify', data),
+  resendVerification: () => axiosClient.post('/auth/resend-verification'),
   me: () => axiosClient.get('/auth/me'),
   updateProfile: (data) => axiosClient.put('/auth/me', data),
   changePassword: (data) => axiosClient.put('/auth/me/password', data),

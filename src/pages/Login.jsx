@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { Link as RouterLink, useNavigate, useLocation } from 'react-router-dom';
+import { useForm, Controller } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import {
   Box,
   Stack,
@@ -17,6 +19,8 @@ import { useAuth } from '../context/AuthContext';
 import authApi from '../api/authApi';
 import AuthShell from '../components/AuthShell';
 import PasswordField from '../components/PasswordField';
+import { loginSchema } from '../validation/authSchemas';
+import { applyServerErrors } from '../utils/formErrors';
 
 export default function Login() {
   const { login } = useAuth();
@@ -24,24 +28,24 @@ export default function Login() {
   const location = useLocation();
   const redirectTo = location.state?.from?.pathname || '/dashboard';
 
-  const [form, setForm] = useState({ email: '', password: '' });
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
+  // Server/general error shown above the form (field-level errors render inline).
+  const [formError, setFormError] = useState('');
 
-  const handleChange = (e) => {
-    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
-  };
+  const {
+    control,
+    handleSubmit,
+    setError,
+    formState: { errors, isSubmitting },
+  } = useForm({
+    resolver: zodResolver(loginSchema),
+    defaultValues: { email: '', password: '' },
+    mode: 'onTouched',
+  });
 
-  // Keep the button disabled until the user has actually started filling
-  // the form (both fields non-empty).
-  const canSubmit = form.email.trim() !== '' && form.password.trim() !== '';
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError('');
-    setLoading(true);
+  const onSubmit = async (values) => {
+    setFormError('');
     try {
-      const { data } = await authApi.login(form);
+      const { data } = await authApi.login(values);
       // Backend envelope: { success, data: { token, user } }.
       const token = data?.data?.token ?? data?.token;
       const user = data?.data?.user ?? data?.user ?? null;
@@ -51,13 +55,9 @@ export default function Login() {
       login(token, user);
       navigate(redirectTo, { replace: true });
     } catch (err) {
-      const message =
-        err.response?.data?.message ||
-        err.message ||
-        'Login failed. Please try again.';
-      setError(message);
-    } finally {
-      setLoading(false);
+      // Map any server field errors inline; show the rest as a banner.
+      const general = applyServerErrors(err, setError, ['email', 'password']);
+      setFormError(general);
     }
   };
 
@@ -81,45 +81,55 @@ export default function Login() {
         </Typography>
       </Stack>
 
-      {error && (
+      {formError && (
         <Alert severity="error" sx={{ mb: 2 }}>
-          {error}
+          {formError}
         </Alert>
       )}
 
-      <Box component="form" onSubmit={handleSubmit} noValidate>
-        <TextField
-          label="Email"
+      <Box component="form" onSubmit={handleSubmit(onSubmit)} noValidate>
+        <Controller
           name="email"
-          type="email"
-          value={form.email}
-          onChange={handleChange}
-          fullWidth
-          required
-          margin="normal"
-          autoComplete="email"
-          autoFocus
+          control={control}
+          render={({ field }) => (
+            <TextField
+              {...field}
+              label="Email"
+              type="email"
+              fullWidth
+              margin="normal"
+              autoComplete="email"
+              autoFocus
+              error={!!errors.email}
+              helperText={errors.email?.message ?? ' '}
+            />
+          )}
         />
-        <PasswordField
-          label="Password"
+        <Controller
           name="password"
-          value={form.password}
-          onChange={handleChange}
-          fullWidth
-          required
-          margin="normal"
-          autoComplete="current-password"
+          control={control}
+          render={({ field }) => (
+            <PasswordField
+              {...field}
+              label="Password"
+              fullWidth
+              margin="normal"
+              autoComplete="current-password"
+              error={!!errors.password}
+              helperText={errors.password?.message ?? ' '}
+            />
+          )}
         />
         <Button
           type="submit"
           variant="contained"
           fullWidth
           size="large"
-          disabled={loading || !canSubmit}
-          sx={{ mt: 3 }}
-          startIcon={loading ? <CircularProgress size={20} color="inherit" /> : null}
+          disabled={isSubmitting}
+          sx={{ mt: 2 }}
+          startIcon={isSubmitting ? <CircularProgress size={20} color="inherit" /> : null}
         >
-          {loading ? 'Signing in…' : 'Sign in'}
+          {isSubmitting ? 'Signing in…' : 'Sign in'}
         </Button>
       </Box>
 

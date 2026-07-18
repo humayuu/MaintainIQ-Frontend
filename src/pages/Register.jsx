@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
+import { useForm, Controller } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import {
   Box,
   Stack,
@@ -21,64 +23,45 @@ import PersonAddAltRoundedIcon from '@mui/icons-material/PersonAddAltRounded';
 import authApi from '../api/authApi';
 import AuthShell from '../components/AuthShell';
 import PasswordField from '../components/PasswordField';
+import { registerSchema } from '../validation/authSchemas';
+import { applyServerErrors } from '../utils/formErrors';
 
 const ROLES = ['admin', 'technician', 'supervisor'];
 
 export default function Register() {
   const navigate = useNavigate();
 
-  const [form, setForm] = useState({
-    name: '',
-    email: '',
-    password: '',
-    confirmPassword: '',
-    role: 'technician',
-  });
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [formError, setFormError] = useState('');
   const [success, setSuccess] = useState(false);
 
-  const handleChange = (e) => {
-    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
-  };
+  const {
+    control,
+    handleSubmit,
+    setError,
+    formState: { errors, isSubmitting },
+  } = useForm({
+    resolver: zodResolver(registerSchema),
+    defaultValues: {
+      name: '',
+      email: '',
+      password: '',
+      confirmPassword: '',
+      role: 'technician',
+    },
+    mode: 'onTouched',
+  });
 
-  // Passwords must match before we let the form submit. Only surface the
-  // mismatch once the user has actually typed something in the confirm field.
-  const passwordsMatch = form.password === form.confirmPassword;
-  const showMismatch = form.confirmPassword !== '' && !passwordsMatch;
-
-  // Keep the button disabled until the user has started filling the form
-  // (name, email and password all non-empty; role has a default) and the two
-  // password fields agree.
-  const canSubmit =
-    form.name.trim() !== '' &&
-    form.email.trim() !== '' &&
-    form.password.trim() !== '' &&
-    form.confirmPassword.trim() !== '' &&
-    passwordsMatch;
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError('');
-
-    if (!passwordsMatch) {
-      setError('Passwords do not match.');
-      return;
-    }
-
-    setLoading(true);
+  const onSubmit = async (values) => {
+    setFormError('');
     try {
       // confirmPassword is a client-side check only — never sent to the API.
-      const { confirmPassword, ...payload } = form;
+      const payload = { ...values };
+      delete payload.confirmPassword;
       await authApi.register(payload);
       setSuccess(true);
     } catch (err) {
-      const message =
-        err.response?.data?.message ||
-        err.message ||
-        'Registration failed. Please try again.';
-      setError(message);
-      setLoading(false);
+      const general = applyServerErrors(err, setError, ['name', 'email', 'password', 'role']);
+      setFormError(general);
     }
   };
 
@@ -114,82 +97,102 @@ export default function Register() {
         </Box>
       </Stack>
 
-      {error && (
+      {formError && (
         <Alert severity="error" sx={{ mt: 2.5 }}>
-          {error}
+          {formError}
         </Alert>
       )}
 
-      <Box component="form" onSubmit={handleSubmit} noValidate sx={{ mt: 2.5 }}>
-        <Stack spacing={2}>
-          <TextField
-            label="Name"
+      <Box component="form" onSubmit={handleSubmit(onSubmit)} noValidate sx={{ mt: 2.5 }}>
+        <Stack spacing={1}>
+          <Controller
             name="name"
-            value={form.name}
-            onChange={handleChange}
-            fullWidth
-            required
-            autoComplete="name"
-            autoFocus
+            control={control}
+            render={({ field }) => (
+              <TextField
+                {...field}
+                label="Name"
+                fullWidth
+                autoComplete="name"
+                autoFocus
+                error={!!errors.name}
+                helperText={errors.name?.message ?? ' '}
+              />
+            )}
           />
-          <TextField
-            label="Email"
+          <Controller
             name="email"
-            type="email"
-            value={form.email}
-            onChange={handleChange}
-            fullWidth
-            required
-            autoComplete="email"
+            control={control}
+            render={({ field }) => (
+              <TextField
+                {...field}
+                label="Email"
+                type="email"
+                fullWidth
+                autoComplete="email"
+                error={!!errors.email}
+                helperText={errors.email?.message ?? ' '}
+              />
+            )}
           />
-          <PasswordField
-            label="Password"
+          <Controller
             name="password"
-            value={form.password}
-            onChange={handleChange}
-            fullWidth
-            required
-            autoComplete="new-password"
+            control={control}
+            render={({ field }) => (
+              <PasswordField
+                {...field}
+                label="Password"
+                fullWidth
+                autoComplete="new-password"
+                error={!!errors.password}
+                helperText={errors.password?.message ?? ' '}
+              />
+            )}
           />
-          <PasswordField
-            label="Confirm password"
+          <Controller
             name="confirmPassword"
-            value={form.confirmPassword}
-            onChange={handleChange}
-            fullWidth
-            required
-            autoComplete="new-password"
-            error={showMismatch}
-            helperText={showMismatch ? 'Passwords do not match.' : ' '}
+            control={control}
+            render={({ field }) => (
+              <PasswordField
+                {...field}
+                label="Confirm password"
+                fullWidth
+                autoComplete="new-password"
+                error={!!errors.confirmPassword}
+                helperText={errors.confirmPassword?.message ?? ' '}
+              />
+            )}
           />
-          <FormControl fullWidth required size="small">
-            <InputLabel id="role-label">Role</InputLabel>
-            <Select
-              labelId="role-label"
-              label="Role"
-              name="role"
-              value={form.role}
-              onChange={handleChange}
-            >
-              {ROLES.map((role) => (
-                <MenuItem key={role} value={role} sx={{ textTransform: 'capitalize' }}>
-                  {role}
-                </MenuItem>
-              ))}
-            </Select>
-            <FormHelperText>Role selection is for demo purposes only.</FormHelperText>
-          </FormControl>
+          <Controller
+            name="role"
+            control={control}
+            render={({ field }) => (
+              <FormControl fullWidth required size="small" error={!!errors.role}>
+                <InputLabel id="role-label">Role</InputLabel>
+                <Select {...field} labelId="role-label" label="Role">
+                  {ROLES.map((role) => (
+                    <MenuItem key={role} value={role} sx={{ textTransform: 'capitalize' }}>
+                      {role}
+                    </MenuItem>
+                  ))}
+                </Select>
+                <FormHelperText>
+                  {errors.role?.message ?? 'Role selection is for demo purposes only.'}
+                </FormHelperText>
+              </FormControl>
+            )}
+          />
 
           <Button
             type="submit"
             variant="contained"
             fullWidth
             size="large"
-            disabled={loading || !canSubmit}
-            sx={{ mt: 0.5 }}
-            startIcon={loading ? <CircularProgress size={20} color="inherit" /> : null}
+            disabled={isSubmitting}
+            sx={{ mt: 1 }}
+            startIcon={isSubmitting ? <CircularProgress size={20} color="inherit" /> : null}
           >
-            {loading ? 'Creating account…' : 'Create account'}
+            {isSubmitting ? 'Creating account…' : 'Create account'}
           </Button>
         </Stack>
       </Box>
@@ -211,7 +214,7 @@ export default function Register() {
         anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
       >
         <Alert severity="success" variant="filled" sx={{ width: '100%' }}>
-          Account created successfully! Please sign in.
+          Account created! Check your email to verify, then sign in.
         </Alert>
       </Snackbar>
     </AuthShell>

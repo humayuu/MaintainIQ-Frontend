@@ -280,6 +280,7 @@ export default function ReportIssueDialog({ open, onClose, slug, fullScreen }) {
               value={review.category}
               onChange={handleReviewChange}
               fullWidth
+              placeholder="e.g. Electrical, Plumbing, Mechanical"
             />
             <FormControl fullWidth>
               <InputLabel id="priority-label">Priority</InputLabel>
@@ -297,36 +298,6 @@ export default function ReportIssueDialog({ open, onClose, slug, fullScreen }) {
                 ))}
               </Select>
             </FormControl>
-
-            <Divider textAlign="left">
-              <Typography variant="caption" color="text.secondary">
-                Possible causes (one per line)
-              </Typography>
-            </Divider>
-            <TextField
-              name="possibleCauses"
-              value={review.possibleCauses}
-              onChange={handleReviewChange}
-              multiline
-              minRows={3}
-              fullWidth
-              placeholder="One cause per line"
-            />
-
-            <Divider textAlign="left">
-              <Typography variant="caption" color="text.secondary">
-                Initial checks (one per line)
-              </Typography>
-            </Divider>
-            <TextField
-              name="initialChecks"
-              value={review.initialChecks}
-              onChange={handleReviewChange}
-              multiline
-              minRows={3}
-              fullWidth
-              placeholder="One check per line"
-            />
 
             <Divider textAlign="left">
               <Typography variant="caption" color="text.secondary">

@@ -300,6 +300,26 @@ export default function IssueDetails() {
   const initialChecks = issue?.initialChecks ?? [];
   const evidence = Array.isArray(issue?.evidence) ? issue.evidence : [];
 
+  // Who reported this issue (captured on the public QR report form). Both fields
+  // are optional — a public reporter may submit anonymously.
+  const reporterName = issue?.reporterName?.trim();
+  const reporterContact = issue?.reporterContact?.trim();
+  const reportedAt = issue?.createdAt
+    ? new Date(issue.createdAt).toLocaleString(undefined, {
+        dateStyle: 'medium',
+        timeStyle: 'short',
+      })
+    : null;
+  const reporterInitials = reporterName
+    ? reporterName
+        .split(' ')
+        .map((s) => s[0])
+        .filter(Boolean)
+        .slice(0, 2)
+        .join('')
+        .toUpperCase()
+    : '';
+
   return (
     <Box sx={{ maxWidth: 1100, mx: 'auto' }}>
       <PageHeader
@@ -439,6 +459,48 @@ export default function IssueDetails() {
                   {technicianName || 'Unassigned'}
                 </Typography>
               </Stack>
+            </SectionCard>
+
+            {/* Who reported the issue (from the public QR report form). */}
+            <SectionCard title="Reported by" icon={PersonRoundedIcon} iconColor="secondary">
+              <Stack direction="row" spacing={1.25} alignItems="center">
+                <Avatar
+                  sx={{
+                    width: 32,
+                    height: 32,
+                    fontSize: '0.8rem',
+                    fontWeight: 700,
+                    color: 'secondary.main',
+                    bgcolor: (t) => alpha(t.palette.secondary.main, 0.14),
+                  }}
+                >
+                  {reporterInitials || <PersonRoundedIcon fontSize="small" />}
+                </Avatar>
+                <Box sx={{ minWidth: 0 }}>
+                  <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                    {reporterName || 'Anonymous'}
+                  </Typography>
+                  {reporterContact && (
+                    <Typography variant="caption" color="text.secondary" sx={{ wordBreak: 'break-word' }}>
+                      {reporterContact}
+                    </Typography>
+                  )}
+                </Box>
+              </Stack>
+              {reportedAt && (
+                <>
+                  <Divider sx={{ my: 2 }} />
+                  <Typography
+                    variant="caption"
+                    sx={{ color: 'text.secondary', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}
+                  >
+                    Reported on
+                  </Typography>
+                  <Typography variant="body2" sx={{ mt: 0.5 }}>
+                    {reportedAt}
+                  </Typography>
+                </>
+              )}
             </SectionCard>
 
             {isAdmin && (

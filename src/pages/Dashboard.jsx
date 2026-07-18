@@ -11,6 +11,7 @@ import {
   Skeleton,
   Button,
   Chip,
+  Alert,
 } from '@mui/material';
 import Inventory2RoundedIcon from '@mui/icons-material/Inventory2Rounded';
 import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded';
@@ -22,6 +23,7 @@ import ChevronRightRoundedIcon from '@mui/icons-material/ChevronRightRounded';
 
 import assetApi from '../api/assetApi';
 import issueApi from '../api/issueApi';
+import authApi from '../api/authApi';
 import { useAuth } from '../context/AuthContext';
 import { useNotify } from '../context/NotifyContext';
 import { statusColor } from '../utils/format';
@@ -64,6 +66,24 @@ export default function Dashboard() {
   const notify = useNotify();
   const isTechnician = user?.role === 'technician';
   const isAdmin = user?.role === 'admin';
+
+  // Email-verification banner (Phase 1: non-blocking nudge). Only shown when the
+  // user record explicitly says false — existing users (field absent) are spared.
+  const [resending, setResending] = useState(false);
+  const [resent, setResent] = useState(false);
+
+  const handleResendVerification = async () => {
+    setResending(true);
+    try {
+      const { data } = await authApi.resendVerification();
+      notify.success(data?.message || 'Verification email sent');
+      setResent(true);
+    } catch (err) {
+      notify.error(err.response?.data?.message || 'Could not send verification email.');
+    } finally {
+      setResending(false);
+    }
+  };
 
   const [loading, setLoading] = useState(true);
   const [assetStats, setAssetStats] = useState({ total: 0, byStatus: {} });
@@ -155,6 +175,26 @@ export default function Dashboard() {
           )
         }
       />
+
+      {/* Email-verification nudge — non-blocking; only for explicitly unverified users. */}
+      {user?.emailVerified === false && (
+        <Alert
+          severity="warning"
+          sx={{ mb: 3, borderRadius: 3 }}
+          action={
+            <Button
+              color="inherit"
+              size="small"
+              onClick={handleResendVerification}
+              disabled={resending || resent}
+            >
+              {resending ? 'Sending…' : resent ? 'Sent ✓' : 'Resend email'}
+            </Button>
+          }
+        >
+          Please verify your email address — check your inbox for the confirmation link.
+        </Alert>
+      )}
 
       {/* KPI row */}
       <Grid container spacing={2.5} sx={{ mb: 3 }}>

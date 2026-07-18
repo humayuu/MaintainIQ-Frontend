@@ -151,7 +151,7 @@ function ScreenshotFrame({ src, alt, aspect = '16 / 10' }) {
               )} 100%)`,
           }}
         >
-          <Stack spacing={1} alignItems="center" sx={{ p: 2, textAlign: 'center' }}>
+          <Stack spacing={1} sx={{ p: 2, textAlign: 'center', alignItems: 'center' }}>
             <ImageRoundedIcon sx={{ fontSize: 40, opacity: 0.5 }} />
             <Typography variant="body2" sx={{ fontWeight: 600 }}>
               {alt}
@@ -187,9 +187,9 @@ export default function Landing() {
         }}
       >
         <Container maxWidth="lg">
-          <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ py: 1.5 }}>
+          <Stack direction="row" sx={{ py: 1.5, width: '100%', alignItems: 'center', justifyContent: 'space-between' }}>
             <BrandMark />
-            <Stack direction="row" spacing={1.5} alignItems="center">
+            <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
               {isAuthenticated ? (
                 <Button component={RouterLink} to="/dashboard" variant="contained" endIcon={<ArrowForwardRoundedIcon />}>
                   Go to dashboard
@@ -219,7 +219,7 @@ export default function Landing() {
         }}
       >
         <Container maxWidth="lg" sx={{ pt: { xs: 6, md: 10 }, pb: { xs: 6, md: 8 } }}>
-          <Stack spacing={3} alignItems="center" textAlign="center" sx={{ maxWidth: 800, mx: 'auto' }}>
+          <Stack spacing={3} sx={{ maxWidth: 800, mx: 'auto', alignItems: 'center', textAlign: 'center' }}>
             <Chip
               label="Asset maintenance, simplified"
               color="primary"
@@ -257,7 +257,7 @@ export default function Landing() {
 
       {/* ---- Features ---- */}
       <Container maxWidth="lg" sx={{ py: { xs: 7, md: 10 } }}>
-        <Stack spacing={1.5} alignItems="center" textAlign="center" sx={{ mb: { xs: 5, md: 7 } }}>
+        <Stack spacing={1.5} sx={{ mb: { xs: 5, md: 7 }, alignItems: 'center', textAlign: 'center' }}>
           <Typography variant="overline" color="primary" sx={{ fontWeight: 700 }}>
             Everything you need
           </Typography>
@@ -317,7 +317,7 @@ export default function Landing() {
       {/* ---- How it works ---- */}
       <Box sx={{ bgcolor: (t) => alpha(t.palette.primary.main, 0.04), borderTop: '1px solid', borderColor: 'divider' }}>
         <Container maxWidth="lg" sx={{ py: { xs: 7, md: 10 } }}>
-          <Stack spacing={1.5} alignItems="center" textAlign="center" sx={{ mb: { xs: 5, md: 7 } }}>
+          <Stack spacing={1.5} sx={{ mb: { xs: 5, md: 7 }, alignItems: 'center', textAlign: 'center' }}>
             <Typography variant="overline" color="primary" sx={{ fontWeight: 700 }}>
               How it works
             </Typography>
@@ -435,7 +435,7 @@ export default function Landing() {
           <Typography sx={{ color: alpha('#fff', 0.85), mb: 4, maxWidth: 520, mx: 'auto' }}>
             Create your workspace in minutes and bring your whole team onto the same page.
           </Typography>
-          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} justifyContent="center">
+          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} sx={{ justifyContent: 'center' }}>
             <Button
               component={RouterLink}
               to={primaryTo}
@@ -466,9 +466,12 @@ export default function Landing() {
           <Stack
             direction={{ xs: 'column', sm: 'row' }}
             spacing={2}
-            alignItems={{ xs: 'flex-start', sm: 'center' }}
-            justifyContent="space-between"
-            sx={{ py: 3 }}
+            sx={{
+              py: 3,
+              width: '100%',
+              alignItems: { xs: 'flex-start', sm: 'center' },
+              justifyContent: 'space-between',
+            }}
           >
             <BrandMark />
             <Typography variant="body2" color="text.secondary">
