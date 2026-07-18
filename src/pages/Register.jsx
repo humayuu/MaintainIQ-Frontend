@@ -214,7 +214,7 @@ export default function Register() {
         anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
       >
         <Alert severity="success" variant="filled" sx={{ width: '100%' }}>
-          Account created! Check your email to verify, then sign in.
+          Account created successfully! Please sign in.
         </Alert>
       </Snackbar>
     </AuthShell>
